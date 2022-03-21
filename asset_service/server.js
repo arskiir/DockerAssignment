@@ -1,40 +1,42 @@
-'use strict';
+'use strict'
 
-const express = require('express');
+const express = require('express')
 var mongo = require('mongodb')
-var MongoClient = require('mongodb').MongoClient;
+var MongoClient = require('mongodb').MongoClient
 
 // Constants
-const PORT = 8008;
-const HOST = '0.0.0.0';
+const PORT = 8008
+const HOST = '0.0.0.0'
 
-var url = "mongodb://asset_mapping:27017/user";
+var url = 'mongodb://asset_mapping:27017/user'
 
-var profile_image = "";
+var profile_image = ''
 
 // App
-const app = express();
+const app = express()
 app.get('/', (req, res) => {
-	var username = req.query.username;
+  var username = req.query.username
 
-	MongoClient.connect(url, function(err, db) {
-  	if (err) throw err;
+  MongoClient.connect(url, function (err, db) {
+    if (err) throw err
+    var dbo = db.db('user')
+    dbo
+      .collection('userProfile')
+      .findOne({ uname: username })
+      .then((result) => {
+        profile_image = result.profile_image
+        db.close()
 
-  	var dbo = db.db('user');
-  	dbo.collection('userProfile').findOne({ uname: username }, function(err, result) {
-  		if (err) throw err;
-    	profile_image = result.profile_image;
-    	db.close();
-    	});
-
-	});
-
-    res.status(200).send({
+        res.status(200).send({
           username: username,
-          profile_image: profile_image
-    });
-});
+          profile_image: profile_image,
+        })
+      })
+      .catch((err) => {
+        throw err
+      })
+  })
+})
 
-
-app.listen(PORT, HOST);
-console.log(`Running on http://${HOST}:${PORT}`);
+app.listen(PORT, HOST)
+console.log(`Running on http://${HOST}:${PORT}`)
